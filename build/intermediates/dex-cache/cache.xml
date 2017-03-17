@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        is-multidex="true"
+        jar="/Users/iwm/Dropbox/code/NjBV/app/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="e847e5cd057fd8880cd1e89c19afd40e489a733b">
+        <dex dex="/Users/iwm/Dropbox/code/NjBV/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run-bootstrap_5df2e2433f443c97091bb296667e919118326e52/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="/Users/iwm/Dropbox/code/NjBV/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="c82741bc129dd5f99f11a4ab8666ae24262053b6">
+        <dex dex="/Users/iwm/Dropbox/code/NjBV/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run_16ba0f423a17873510f26e44c69c504398478d39/classes.dex" />
+    </item>
+
+</items>
