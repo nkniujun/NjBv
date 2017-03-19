@@ -10,9 +10,6 @@ public class MainActivity extends Activity {
     private BannerScrollView mScrollView;
     private int[] imgIds;
 
-//    private static AutoPlayRunnable auroPlayRunnable;
-//    private static int AUTO_PLAY_DUATION = 3000;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

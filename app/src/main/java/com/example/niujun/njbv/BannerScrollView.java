@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.VelocityTracker;
 import android.view.ViewGroup;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
@@ -26,7 +27,7 @@ public class BannerScrollView extends HorizontalScrollView {
 
     private Paint mStrokePaint, mFillPaint;
 
-    private int CIRCLE_RADIUS = 3;
+    private int CIRCLE_RADIUS = 3; //圆圈半径
     private int mCurrentPage;
 
     private int[] imgIds = new int[]{};
@@ -39,6 +40,15 @@ public class BannerScrollView extends HorizontalScrollView {
 
     private boolean isRight;
     private boolean isLeft;
+
+    private ImageView mPreImageView;
+    private ImageView mCurrentImageView;
+    private ImageView mNextImageView;
+
+    private boolean up;
+
+    private VelocityTracker mVelocityTracker;
+
 
     public BannerScrollView(Context context) {
         super(context);
@@ -71,16 +81,11 @@ public class BannerScrollView extends HorizontalScrollView {
         for (int i = 0; i < 3; i++) {
             mContainer.addView(makeImgView());
         }
+        mPreImageView = (ImageView) mContainer.getChildAt(0);
+        mCurrentImageView = (ImageView) mContainer.getChildAt(1);
+        mNextImageView = (ImageView) mContainer.getChildAt(2);
     }
 
-
-    private ImageView makeImgView(int resID) {
-        ImageView imageView = new ImageView(mContext);
-        imageView.setLayoutParams(imgParams);
-        imageView.setImageResource(resID);
-        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        return imageView;
-    }
 
     private ImageView makeImgView() {
         ImageView imageView = new ImageView(mContext);
@@ -115,7 +120,7 @@ public class BannerScrollView extends HorizontalScrollView {
     public void scrollToPage(int page, boolean isSmooth) {
         //第一张前面增加了一张图片，所以默认 page+1
         int i = Math.abs(page) % 3;
-        int j = Math.abs(imgIndex + imgCount) % imgCount;
+        int j = resetImgIndex(imgIndex);
         ImageView imageView = (ImageView) mContainer.getChildAt(i);
         imageView.setImageResource(imgIds[j]);
 
@@ -124,7 +129,35 @@ public class BannerScrollView extends HorizontalScrollView {
         } else {
             this.scrollTo(getWidth() * (page), 0);
         }
-        show("平滑完毕");
+    }
+
+
+    /**
+     * 进行偏移
+     *
+     * @param l
+     */
+    private void updataScroll(int l) {
+        if ((l == 2 * getWidth() || l == 0) && up) {
+            setScrollX(1 * getWidth());
+            mCurrentImageView.setImageResource(imgIds[resetImgIndex(imgIndex)]);
+        }
+
+    }
+
+
+    @Override
+    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        super.onScrollChanged(l, t, oldl, oldt);
+        updataScroll(l);
+    }
+
+
+    private int resetImgIndex(int i) {
+        if (i < 0) {
+            i = i + imgCount;
+        }
+        return i % imgCount;
     }
 
     @Override
@@ -132,6 +165,8 @@ public class BannerScrollView extends HorizontalScrollView {
         super.onLayout(changed, l, t, r, b);
         //滑动到第一张图片
         scrollToPage(1, false);
+        preLoad();
+        nextLoad();
     }
 
     private void initPaint() {
@@ -147,6 +182,11 @@ public class BannerScrollView extends HorizontalScrollView {
         mFillPaint.setStyle(Paint.Style.FILL_AND_STROKE);
     }
 
+    /**
+     * 小圆圈绘制
+     *
+     * @param canvas
+     */
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
@@ -161,10 +201,7 @@ public class BannerScrollView extends HorizontalScrollView {
         //第一个圆圈的位置
         int offsetX = getScrollX() + width / 2 - totleWidth / 2 + radiusPix;  //横坐标偏移
         int offsetY = getHeight() - (int) (10 * density);       //纵坐标偏移
-
         drawCircle(canvas, radiusPix, margin, diameterPix, offsetX, offsetY);
-
-        show("小圆点");
     }
 
 
@@ -179,20 +216,7 @@ public class BannerScrollView extends HorizontalScrollView {
      * @param offsetY
      */
     private void drawCircle(Canvas canvas, int radiusPix, int margin, int diameterPix, int offsetX, int offsetY) {
-        show("cicleIndex= " + imgIndex % imgIds.length);
-        int cicleIndex = imgIndex % imgCount;
-//        if (mCurrentPage % imgIds.length == 0) {
-        //第3个圆实心
-//            for (int i = 0; i < imgIds.length; i++) {
-//                if (i == (imgIndex%imgIds.length)) {
-//                    canvas.drawCircle(offsetX, offsetY, radiusPix, mFillPaint);
-//                } else {
-//                    canvas.drawCircle(offsetX, offsetY, radiusPix, mStrokePaint);
-//                }
-//                offsetX += diameterPix + margin;//下一个圆圈的横坐标偏移
-//            }
-//        }
-
+        int cicleIndex = resetImgIndex(imgIndex);
         for (int i = 0; i < imgCount; i++) {
             if (i == cicleIndex) {
                 canvas.drawCircle(offsetX, offsetY, radiusPix, mFillPaint);
@@ -201,139 +225,79 @@ public class BannerScrollView extends HorizontalScrollView {
             }
             offsetX += diameterPix + margin;//下一个圆圈的横坐标偏移
         }
-
-//        if (mCurrentPage % imgIds.length == 1) {
-//            //第1个圆实心
-//            for (int i = 1; i <= imgIds.length; i++) {
-//                if (i == 1) {
-//                    canvas.drawCircle(offsetX, offsetY, radiusPix, mFillPaint);
-//                } else {
-//                    canvas.drawCircle(offsetX, offsetY, radiusPix, mStrokePaint);
-//                }
-//                offsetX += diameterPix + margin;//下一个圆圈的横坐标偏移
-//            }
-//        }
-
-//        if (mCurrentPage % imgIds.length == 2) {
-//            //第1个圆实心
-//            for (int i = 1; i <= imgIds.length; i++) {
-//                if (i == 2) {
-//                    canvas.drawCircle(offsetX, offsetY, radiusPix, mFillPaint);
-//                } else {
-//                    canvas.drawCircle(offsetX, offsetY, radiusPix, mStrokePaint);
-//                }
-//                offsetX += diameterPix + margin;//下一个圆圈的横坐标偏移
-//            }
-//        }
     }
 
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
 
-
+        if (mVelocityTracker == null) {
+            mVelocityTracker = VelocityTracker.obtain();//速度追踪
+        }
+        mVelocityTracker.addMovement(ev);
+        mVelocityTracker.computeCurrentVelocity(1000, 2000);
+        int xVelocity = (int) mVelocityTracker.getXVelocity();//水平速度
         switch (ev.getAction()) {
 
             case MotionEvent.ACTION_DOWN:
+                up = false;
                 downScrollX = getScrollX();
                 break;
             case MotionEvent.ACTION_MOVE:
-
-
                 mCurrentPage = (int) Math.round((double) getScrollX() / (double) getWidth());//当前页
                 int nextPage = (int) Math.ceil((double) getScrollX() / (double) getWidth());//下一页
                 int prePage = (int) Math.floor((double) getScrollX() / (double) getWidth());//上一页
 
-
                 if (getScrollX() < downScrollX) {
                     //向右滑动
-
-                    preImgIndex = (imgIndex - 1 + imgCount) % imgCount;
-                    ImageView imageView = (ImageView) mContainer.getChildAt(0);
-                    imageView.setImageResource(imgIds[preImgIndex]);
-
-                    if (mCurrentPage == prePage) {
+                    if (Math.abs(xVelocity) > 1000 || mCurrentPage == prePage) {
                         isRight = true;
-                    } else {
-                        isRight = false;
                     }
+
                 } else if (getScrollX() > downScrollX) {
                     //向左滑动
-                    nextImgIndex = (imgIndex + 1) % imgCount;
-                    ImageView imageView = (ImageView) mContainer.getChildAt(2);
-                    imageView.setImageResource(imgIds[nextImgIndex]);
-                    if (mCurrentPage == nextPage) {
+                    if (Math.abs(xVelocity) > 1000 || mCurrentPage == nextPage) {
                         isLeft = true;
-                    } else {
-                        isLeft = false;
                     }
                 }
                 break;
             case MotionEvent.ACTION_CANCEL:
             case MotionEvent.ACTION_UP:
-                show("抬起手指");
+                up = true;
                 if (isLeft) {
                     //真正滑动到下一张
                     imgIndex++;
-                }
-                if (isRight) {
+                } else if (isRight) {
                     imgIndex--;
-                    if (imgIndex < 0) {
-                        imgIndex = imgIndex + imgCount;
-                    }
                 }
+                imgIndex = resetImgIndex(imgIndex);
                 scrollToPage(mCurrentPage, true);
                 isLeft = false;
                 isRight = false;
-
+                updataScroll(getScrollX());
                 return true;    //直接返回，不让ScrollView处理事件
         }
         return super.onTouchEvent(ev);
     }
 
-
-    @Override
-    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
-
-        if (l == 2 * getWidth()) {
-            setScrollX(1 * getWidth());
-            ImageView imageView = (ImageView) mContainer.getChildAt(1);
-            int j = imgIndex % imgCount;
-            imageView.setImageResource(imgIds[j]);
-            next(j);
-
-            show("最右边");
-        } else if (l == 0) {
-            setScrollX(1 * getWidth());
-            ImageView imageView = (ImageView) mContainer.getChildAt(1);
-            int j = (imgIndex + imgCount) % imgCount;
-            imageView.setImageResource(imgIds[j]);
-            pre(j);
-
-            show("最左边");
-
-        }
+    /**
+     * 预加载右侧图片
+     */
+    private void nextLoad() {
+        nextImgIndex = (imgIndex + 1) % imgCount;
+        mNextImageView.setImageResource(imgIds[nextImgIndex]);
     }
 
-    private void next(int i) {
-
-        int index = (i + 1) % imgCount;
-        ImageView imageView = (ImageView) mContainer.getChildAt(2);
-        imageView.setImageResource(imgIds[index]);
+    /**
+     * 预加载左侧图片
+     */
+    private void preLoad() {
+        preImgIndex = (imgIndex - 1 + imgCount) % imgCount;
+        mPreImageView.setImageResource(imgIds[preImgIndex]);
     }
 
-    private void pre(int i) {
-        if (i < 0) {
-            i = i + imgCount;
-        }
-        int index = (i - 1 + imgCount) % imgCount;
-        ImageView imageView = (ImageView) mContainer.getChildAt(0);
-        imageView.setImageResource(imgIds[index]);
-
-    }
 
     private void show(String str) {
         Log.i("Nj", str);
     }
-
 }
