@@ -12,6 +12,15 @@
     </item>
     <item
         is-multidex="true"
+        jar="/Users/iwm/nkniujun/github/NjBV/app/build/intermediates/incremental-classes/debug/instant-run-bootstrap.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="2a998641b827aacae101810463d255c510ba2f1a">
+        <dex dex="/Users/iwm/nkniujun/github/NjBV/app/build/intermediates/transforms/dex/debug/folders/1000/10000/instant-run-bootstrap_be8f7a60e58b7bccd4f0132cfb718d8c8bdd18cb/classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
         jar="/Users/iwm/Dropbox/code/NjBV/app/build/intermediates/incremental-runtime-classes/debug/instant-run.jar"
         jumboMode="true"
         optimize="true"

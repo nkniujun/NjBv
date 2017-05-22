@@ -17,6 +17,7 @@ import static android.widget.LinearLayout.HORIZONTAL;
 
 /**
  * Created by niujun on 2017/3/10.
+ *  * 将isEnd()和isStart()注销掉就可以轮播
  */
 
 public class BannerScrollView extends HorizontalScrollView {
@@ -47,7 +48,12 @@ public class BannerScrollView extends HorizontalScrollView {
 
     private boolean up;
 
+    private int circlePos;
+
     private VelocityTracker mVelocityTracker;
+
+
+    private onStartOrEndListener mListener;
 
 
     public BannerScrollView(Context context) {
@@ -217,19 +223,30 @@ public class BannerScrollView extends HorizontalScrollView {
      */
     private void drawCircle(Canvas canvas, int radiusPix, int margin, int diameterPix, int offsetX, int offsetY) {
         int cicleIndex = resetImgIndex(imgIndex);
+        int currentIndex = 0;
         for (int i = 0; i < imgCount; i++) {
             if (i == cicleIndex) {
+                circlePos = i;
+                Log.i("Nj", "" + circlePos);
                 canvas.drawCircle(offsetX, offsetY, radiusPix, mFillPaint);
+                currentIndex = i;
             } else {
                 canvas.drawCircle(offsetX, offsetY, radiusPix, mStrokePaint);
             }
             offsetX += diameterPix + margin;//下一个圆圈的横坐标偏移
+        }
+
+        if (currentIndex == 0) {
+            mListener.doStart();
+        } else if (currentIndex == imgCount - 1) {
+            mListener.doFinish();
         }
     }
 
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
+
 
         if (mVelocityTracker == null) {
             mVelocityTracker = VelocityTracker.obtain();//速度追踪
@@ -250,12 +267,22 @@ public class BannerScrollView extends HorizontalScrollView {
 
                 if (getScrollX() < downScrollX) {
                     //向右滑动
+                    if (isStart()) {
+                        mListener.doStart();
+                        return true;
+                    }
+
                     if (Math.abs(xVelocity) > 1000 || mCurrentPage == prePage) {
                         isRight = true;
                     }
 
                 } else if (getScrollX() > downScrollX) {
                     //向左滑动
+
+                    if (isEnd()) {
+                        return true;
+                    }
+
                     if (Math.abs(xVelocity) > 1000 || mCurrentPage == nextPage) {
                         isLeft = true;
                     }
@@ -267,8 +294,10 @@ public class BannerScrollView extends HorizontalScrollView {
                 if (isLeft) {
                     //真正滑动到下一张
                     imgIndex++;
+
                 } else if (isRight) {
                     imgIndex--;
+
                 }
                 imgIndex = resetImgIndex(imgIndex);
                 scrollToPage(mCurrentPage, true);
@@ -296,8 +325,29 @@ public class BannerScrollView extends HorizontalScrollView {
         mPreImageView.setImageResource(imgIds[preImgIndex]);
     }
 
+    //判断是否滑到最后一张view
+    private boolean isEnd() {
+        return circlePos == imgCount - 1;
+    }
+
+    //判断是否是第一张
+    private boolean isStart() {
+        return circlePos == 0;
+    }
+
 
     private void show(String str) {
         Log.i("Nj", str);
     }
+
+    public interface onStartOrEndListener {
+        void doFinish();
+
+        void doStart();
+    }
+
+    public void setListener(onStartOrEndListener listener) {
+        mListener = listener;
+    }
+
 }
